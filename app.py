@@ -151,9 +151,16 @@ os.makedirs(
 # 页面标题
 # =========================================================
 
-st.title(
-    "🎓 Global AI课程引导型智能体"
-)
+st.markdown("""
+<h1 style="
+    font-size: clamp(20px, 5vw, 32px);
+    line-height: 1.4;
+    text-align: center;
+    overflow-wrap: anywhere;
+">
+🎓 Global AI课程引导型智能体
+</h1>
+""", unsafe_allow_html=True)
 
 st.write(
     "根据 Global AI 课程要求、未来职业目标、"
