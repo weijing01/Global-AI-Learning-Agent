@@ -1,96 +1,192 @@
-import os
+            if st.button(
+                f"应用到「{category}」",
+                key=f"apply_{category}",
+                use_container_width=True
+            ):
 
-import streamlit as st
-from dotenv import load_dotenv
+                set_category_knowledge(
+                    category,
+                    category_level
+                )
 
-# Cloud: use Streamlit Secrets. Local: use .env. Never put real keys in code.
-load_dotenv()
-try:
-    cloud_key = st.secrets.get("DEEPSEEK_API_KEY")
-except (FileNotFoundError, KeyError, AttributeError):
-    cloud_key = None
-if cloud_key and not os.getenv("DEEPSEEK_API_KEY"):
-    os.environ["DEEPSEEK_API_KEY"] = str(cloud_key)
-
-if not os.getenv("DEEPSEEK_API_KEY"):
-    st.error("未配置 DeepSeek API Key。请在 Streamlit Cloud → App settings → Secrets 中设置 DEEPSEEK_API_KEY。")
-    st.stop()
-import numpy as np
-import matplotlib.pyplot as plt
-
-from planner import planner_agent
-from tutor import tutor_agent
-from evaluator import evaluator_agent
-
-from memory import (
-    load_progress,
-    save_progress,
-
-    load_self_assessment,
-    save_self_assessment,
-
-    get_learning_records,
-    get_learning_records_by_date,
-    get_daily_summary,
-    get_recurring_weak_points,
-    get_learning_trend,
-    get_memory_summary,
-
-    get_topic_attempt_count,
-    update_latest_record_action,
-
-    clear_progress
-)
+                st.rerun()
 
 
-# =========================================================
-# 页面设置
-# =========================================================
-
-st.set_page_config(
-    page_title="Global AI课程引导型智能体",
-    page_icon="🎓",
-    layout="wide"
-)
+            st.divider()
 
 
-# Responsive layout: compact headings and spacing on phones only.
-st.markdown("""
-<style>
-@media (max-width: 640px) {
-    .stMainBlockContainer, .block-container {
-        padding-top: 4.5rem !important; /* Keep title below Streamlit mobile toolbar */
-        padding-left: 1rem !important;
-        padding-right: 1rem !important;
-        padding-bottom: 4rem !important;
-    }
-    .stMainBlockContainer h1, .block-container h1 {
-        font-size: 1.75rem !important;
-        line-height: 1.3 !important;
-        overflow-wrap: anywhere;
-        margin: 0.45rem 0 0.65rem !important;
-    }
-    .stMainBlockContainer h2, .block-container h2 {
-        font-size: 1.4rem !important;
-        line-height: 1.35 !important;
-        margin: 0.8rem 0 0.4rem !important;
-    }
-    .stMainBlockContainer h3, .block-container h3 {
-        font-size: 1.2rem !important;
-        line-height: 1.35 !important;
-        margin: 0.65rem 0 0.3rem !important;
-    }
-    .stMainBlockContainer p, .block-container p,
-    .stMainBlockContainer li, .block-container li {
-        font-size: 0.96rem;
-        line-height: 1.6;
-        overflow-wrap: anywhere;
-    }
-    .stMainBlockContainer [data-testid="stVerticalBlock"] {
-        gap: 0.7rem;
-    }
-    .stMainBlockContainer [data-testid="stMarkdownContainer"] pre {
-        max-width: 100%;
-        overflow-x: auto;
-    }
-    .stMainBlockContainer .stButton button,
+            for subject in subjects:
+
+                level = (
+                    st.selectbox(
+                        subject,
+                        LEVEL_OPTIONS,
+                        key=(
+                            f"knowledge_"
+                            f"{category}_"
+                            f"{subject}"
+                        )
+                    )
+                )
+
+
+                knowledge_profile[
+                    category
+                ][subject] = level
+
+
+    # =====================================================
+    # 用户自己的学习资料
+    # =====================================================
+
+    st.divider()
+
+    st.header(
+        "📂 我的学习资料"
+    )
+
+
+    st.caption(
+        "可以上传自己的 PDF 学习资料。"
+        "这些资料会作为 Global AI 官方课程资料的补充知识来源。"
+    )
+
+
+    st.info(
+        "Global AI 课程资料优先，"
+        "个人上传资料用于补充解释和学习。"
+    )
+
+
+    uploaded_files = (
+        st.file_uploader(
+            "上传 PDF 学习资料",
+            type=["pdf"],
+            accept_multiple_files=True,
+            key="user_material_uploader"
+        )
+    )
+
+
+    # =====================================================
+    # 保存上传文件
+    # =====================================================
+
+    if uploaded_files:
+
+        newly_added = []
+
+
+        for uploaded_file in (
+            uploaded_files
+        ):
+
+            # 防止目录路径注入
+            safe_filename = (
+                os.path.basename(
+                    uploaded_file.name
+                )
+            )
+
+
+            save_path = (
+                os.path.join(
+                    USER_MATERIAL_DIR,
+                    safe_filename
+                )
+            )
+
+
+            if not os.path.exists(
+                save_path
+            ):
+
+                with open(
+                    save_path,
+                    "wb"
+                ) as f:
+
+                    f.write(
+                        uploaded_file.getbuffer()
+                    )
+
+
+                newly_added.append(
+                    safe_filename
+                )
+
+
+        if newly_added:
+
+            for filename in newly_added:
+
+                st.success(
+                    f"已添加：{filename}"
+                )
+
+
+            st.caption(
+                "新资料会在下一次 Tutor 检索时自动进入知识库。"
+            )
+
+
+    # =====================================================
+    # 已上传文件
+    # =====================================================
+
+    existing_materials = [
+
+        filename
+
+        for filename
+        in os.listdir(
+            USER_MATERIAL_DIR
+        )
+
+        if filename.lower().endswith(
+            ".pdf"
+        )
+    ]
+
+
+    if existing_materials:
+
+        with st.expander(
+            f"📚 已添加的学习资料（{len(existing_materials)}）"
+        ):
+
+            for filename in sorted(
+                existing_materials
+            ):
+
+                st.write(
+                    f"📄 {filename}"
+                )
+
+
+    else:
+
+        st.caption(
+            "目前还没有添加个人学习资料。"
+        )
+
+
+    # =====================================================
+    # 学习记录
+    # =====================================================
+
+    st.divider()
+
+    st.header(
+        "📖 学习记录"
+    )
+
+
+    all_records = (
+        get_learning_records()
+    )
+
+
+    daily_records = (
+        get_learning_records_by_date()
+    )
