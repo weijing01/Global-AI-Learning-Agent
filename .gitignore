@@ -1,0 +1,21 @@
+# Python and editor files
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.idea/
+# API credentials
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+# Private user data and generated RAG cache
+progress.json
+student_profile.json
+rag_cache/
+user_materials/*
+!user_materials/.gitkeep
+# Do not commit course PDFs without permission
+course_data/*
+!course_data/.gitkeep
+.DS_Store
