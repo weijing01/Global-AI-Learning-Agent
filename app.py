@@ -54,6 +54,56 @@ st.set_page_config(
 )
 
 
+# Responsive layout: compact headings and spacing on phones only.
+st.markdown("""
+<style>
+@media (max-width: 640px) {
+    .stMainBlockContainer, .block-container {
+        padding-top: 0.75rem !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        padding-bottom: 4rem !important;
+    }
+    .stMainBlockContainer h1, .block-container h1 {
+        font-size: 1.75rem !important;
+        line-height: 1.3 !important;
+        overflow-wrap: anywhere;
+        margin: 0.45rem 0 0.65rem !important;
+    }
+    .stMainBlockContainer h2, .block-container h2 {
+        font-size: 1.4rem !important;
+        line-height: 1.35 !important;
+        margin: 0.8rem 0 0.4rem !important;
+    }
+    .stMainBlockContainer h3, .block-container h3 {
+        font-size: 1.2rem !important;
+        line-height: 1.35 !important;
+        margin: 0.65rem 0 0.3rem !important;
+    }
+    .stMainBlockContainer p, .block-container p,
+    .stMainBlockContainer li, .block-container li {
+        font-size: 0.96rem;
+        line-height: 1.6;
+        overflow-wrap: anywhere;
+    }
+    .stMainBlockContainer [data-testid="stVerticalBlock"] {
+        gap: 0.7rem;
+    }
+    .stMainBlockContainer [data-testid="stMarkdownContainer"] pre {
+        max-width: 100%;
+        overflow-x: auto;
+    }
+    .stMainBlockContainer .stButton button,
+    .stMainBlockContainer .stDownloadButton button {
+        min-height: 2.65rem;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+}
+</style>
+""", unsafe_allow_html=True)
+
+
 # =========================================================
 # Matplotlib 中文字体
 # =========================================================
@@ -1682,9 +1732,24 @@ if st.session_state.show_radar:
     )
 
 
+    # Linux cloud images do not necessarily include Chinese fonts.
+    # Use short ASCII category labels on the chart and a Chinese legend below it.
+    radar_name_map = {
+        "编程基础": "Coding",
+        "数学基础": "Math",
+        "机器学习": "ML",
+        "深度学习": "DL",
+        "NLP": "NLP",
+        "AI / Agent开发": "AI Agent",
+    }
+    radar_labels = [
+        radar_name_map.get(label, f"Area {i + 1}")
+        for i, label in enumerate(labels)
+    ]
+
     ax.set_xticklabels(
-        labels,
-        fontsize=8
+        radar_labels,
+        fontsize=9
     )
 
 
@@ -1717,33 +1782,19 @@ if st.session_state.show_radar:
 
 
     ax.set_title(
-        "课程能力值",
-        fontsize=13,
-        pad=18
+        "Learning Ability",
+        fontsize=12,
+        pad=17
     )
 
 
-    _, radar_col, _ = (
-        st.columns(
-            [
-                1.2,
-                1,
-                1.2
-            ]
-        )
-    )
-
-
-    with radar_col:
-
-        st.pyplot(
-            fig,
-            use_container_width=False
-        )
-
-
-    plt.close(
-        fig
+    # Expand naturally to the available width on desktop and mobile.
+    fig.tight_layout(pad=1.5)
+    st.pyplot(fig, use_container_width=True)
+    plt.close(fig)
+    st.caption(
+        "图例：Coding＝编程基础；Math＝数学基础；ML＝机器学习；"
+        "DL＝深度学习；NLP＝自然语言处理；AI Agent＝AI / Agent开发。"
     )
 
 
